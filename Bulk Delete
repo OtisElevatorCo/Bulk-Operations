@@ -1,0 +1,30 @@
+INBOUND ENDPOINT
+ {
+        "name": "deleteList",
+        "baseUrlType": "workday-wql",
+        "url": "<% 'data?query=' + string:urlEncode('SELECT workdayID AS id FROM WQLModelIdentifier LIMIT 100' )  %>",
+        "authType": "SSO"
+ } 
+
+
+OUTBOUND ENDPOINT
+{
+        "name": "deleteEntries",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "url": https://api.workday.com/orchestrate/v1/apps/bulkoperations_nsdrwq/orchestrations/bulkDelete/launch,
+        "onSend": "<%
+        //Replace the below placeholder with ONLY the model ID you used in the deleteList endpoint, not the WQL call. Ex: A WQL call using FROM contractCW_nsdrwq_cWListValues, only put cWListValues
+        const dataHold = {'siteID': site.applicationId, 'modelID': 'PLACEHOLDER', 'data': []};
+        dataHold.data = deleteList;
+        self.data = dataHold;
+         %>"
+}
+
+*/ 
+Things to note: 
+1)	Orchestrations only allow up to 100 instances to be deleted at once (notice the LIMIT 100). If you need to delete more than 100, you will need to re-run this orchestration x times.
+2)	The app called “bulkOperations” must be installed in the tenant you’re deleting within ie: deleting items from “Overtime” in Otis 2, ensure “bulkOperations” is installed in Otis 2.
+3)	I recommend creating a new page for a clean workspace when doing this as when you submit the page for this orchestration, all other OB endpoints on that page will also fire.
+4)	I currently only have this pushed as far as IMPL tenants, not SBX or Prod.
+*/
